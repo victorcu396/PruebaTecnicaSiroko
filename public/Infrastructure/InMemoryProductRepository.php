@@ -95,7 +95,7 @@ class InMemoryProductRepository implements ProductRepository{
         return $inMemoryProductRepository;
     }
 
-    public function byId(string $id): ?Product{
+    public function findByProductId(string $id): ?Product{
 
         $products = $this->getAll();
         foreach($products as $product){

@@ -7,5 +7,5 @@ namespace Domain;
 interface ProductRepository
 {
     public function getAll(): array;
-    public function byId(string $productId): ?Product;
+    public function findByProductId(string $productId): ?Product;
 }

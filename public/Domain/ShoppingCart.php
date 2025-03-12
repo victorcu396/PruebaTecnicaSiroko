@@ -1,44 +1,143 @@
 <?php
-declare(strict_types=1);
-
+declare(strict_types= 1);
 namespace Domain;
 
-class ShoppingCart {
-    public function __construct(
-        private string $shoppingCartId,
-        private string $customerId,
-        private \dateTime $date,
-        private array $productList,
-   ){}
-
-    public function getShoppingCartId(): string{
-        return $this->shoppingCartId;
+class ShoppingCart
+{
+    private string $customerId;
+    private string $direction;
+    
+    /**
+     * @var CartLine[]
+     */
+    private array $lines = [];
+    
+    public function __construct(string $customerId, string $direction)
+    {
+        $this->customerId = $customerId;
+        $this->direction = $direction;
     }
-    public function getCustomerId(): string{
+    
+    /**
+     * Add a product to the shopping cart
+     * 
+     * @param Product $product
+     * @param int $quantity
+     * @return void
+     */
+    public function addProduct(Product $product, int $quantity): void
+    {
+        $productId = $product->getId();
+        
+        // Check if the product is already in the cart
+        foreach ($this->lines as $line) {
+            if ($line->getProduct()->getId() === $productId) {
+                // Update quantity if product exists
+                $line->increaseQuantity($quantity);
+                return;
+            }
+        }
+        
+        // Add new product to cart
+        $this->lines[] = new CartLine($product, $quantity);
+    }
+    
+    /**
+     * Get all lines in the shopping cart
+     * 
+     * @return CartLine[]
+     */
+    public function getLines(): array
+    {
+        return $this->lines;
+    }
+    
+    /**
+     * Remove a product from the cart
+     * 
+     * @param string $productId
+     * @return void
+     */
+    public function removeProduct(string $productId): void
+    {
+        foreach ($this->lines as $key => $line) {
+            if ($line->getProduct()->getId() === $productId) {
+                unset($this->lines[$key]);
+                $this->lines = array_values($this->lines); // Reindex array
+                return;
+            }
+        }
+    }
+    
+    /**
+     * Update the quantity of a product
+     * 
+     * @param string $productId
+     * @param int $quantity
+     * @return void
+     */
+    public function updateQuantity(string $productId, int $quantity): void
+    {
+        foreach ($this->lines as $line) {
+            if ($line->getProduct()->getId() === $productId) {
+                $line->setQuantity($quantity);
+                return;
+            }
+        }
+    }
+    
+    /**
+     * Calculate the total price of the cart
+     * 
+     * @return float
+     */
+    public function calculateTotal(): float
+    {
+        $total = 0;
+        foreach ($this->lines as $line) {
+            $total += $line->calculateSubtotal();
+        }
+        return $total;
+    }
+    
+    /**
+     * Get customer ID
+     * 
+     * @return string
+     */
+    public function getCustomerId(): string
+    {
         return $this->customerId;
     }
-
-    public function getProductList(): array{
-        return $this->productList;
+    
+    /**
+     * Get direction
+     * 
+     * @return string
+     */
+    public function getDirection(): string
+    {
+        return $this->direction;
     }
-
-    public function getDate(): \dateTime{
-        return $this->date;
+    
+    /**
+     * Set direction
+     * 
+     * @param string $direction
+     * @return void
+     */
+    public function setDirection(string $direction): void
+    {
+        $this->direction = $direction;
     }
-
-    public function setShoppingCartId(string $shoppingCartId): void{
-        $this->shoppingCartId = $shoppingCartId;
-    }
-
-    public function setCustomerId(string $customerId): void{
-        $this->customerId = $customerId;
-    }   
-
-    public function setProductList(array $productList): void{
-        $this->productList = $productList;
-    }
-
-    public function setDate(\dateTime $date): void{
-        $this->date = $date;
+    
+    /**
+     * Get the number of items in the cart
+     * 
+     * @return int
+     */
+    public function getItemCount(): int
+    {
+        return count($this->lines);
     }
 }
